@@ -1,0 +1,91 @@
+.header {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  width: 100%;
+  z-index: 2;
+  max-width: var(--max-width);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+
+  a {
+    color: var(--main-color);
+  }
+}
+
+.header > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.header .link {
+  cursor: pointer;
+  gap: 20px;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  position: relative;
+  margin: 0;
+  font-size: 18px;
+  padding: 1rem;
+  color: var(--main-card-color);
+}
+
+.header_image {
+  width: 120px;
+  height: 60px;
+}
+.market {
+  font-size: 18px;
+}
+
+@media (max-width: 700px) {
+  .header {
+    font-size: 0.8rem;
+  }
+
+  .header a {
+    padding: 1rem;
+  }
+
+  .header p,
+  .header div {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    width: 100%;
+  }
+
+  .header p {
+    align-items: center;
+    inset: 0 0 auto;
+    padding: 2rem 1rem 1.4rem;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(var(--callout-border-rgb), 0.25);
+    background: linear-gradient(
+      to bottom,
+      rgba(var(--background-start-rgb), 1),
+      rgba(var(--callout-rgb), 0.5)
+    );
+    background-clip: padding-box;
+    backdrop-filter: blur(24px);
+  }
+
+  .header div {
+    align-items: flex-end;
+    pointer-events: none;
+    inset: auto 0 0;
+    padding: 2rem;
+    height: 200px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgb(var(--background-end-rgb)) 40%
+    );
+    z-index: 1;
+  }
+}

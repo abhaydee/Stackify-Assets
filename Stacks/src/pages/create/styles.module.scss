@@ -1,0 +1,19 @@
+.kycContainer {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  p {
+    margin-bottom: 20px;
+  }
+}
+
+.motion {
+  opacity: 1;
+  transform: none;
+  width: 150px;
+  cursor: pointer;
+}
+.avatarContainer {
+  border-radius: var(--main-border-radius);
+  align-self: center;
+}

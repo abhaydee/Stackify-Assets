@@ -1,0 +1,28 @@
+.button {
+  background-color: var(--main-color);
+  display: grid;
+  place-content: center;
+  padding: 12px 14px;
+  border-radius: var(--main-border-radius);
+  border: 0;
+  font-weight: 700;
+  font-size: 18px;
+  font-family: var(--orbitron-font);
+  cursor: pointer;
+  user-select: none;
+  transition: 0.2s linear;
+}
+
+.button:hover {
+  opacity: 0.8;
+}
+
+.filled {
+  background: var(--main-color);
+  color: black;
+}
+
+.outline {
+  background: black;
+  color: var(--main-color);
+}

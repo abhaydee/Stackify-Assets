@@ -1,0 +1,30 @@
+.container {
+  background-color: var(--main-card-color);
+}
+.header {
+  color: var(--main-text-color);
+}
+
+.avatarContainer {
+  background:
+    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.54) 0, rgba(255, 255, 255, 0.54) 25px, transparent 25px)
+      0% 0%/30px 30px no-repeat,
+    radial-gradient(circle at 0 100%, rgba(255, 255, 255, 0.54) 0, rgba(255, 255, 255, 0.54) 25px, transparent 25px)
+      100% 0%/30px 30px no-repeat,
+    radial-gradient(circle at 100% 0, rgba(255, 255, 255, 0.54) 0, rgba(255, 255, 255, 0.54) 25px, transparent 25px) 0%
+      100%/30px 30px no-repeat,
+    radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.54) 0, rgba(255, 255, 255, 0.54) 25px, transparent 25px) 100%
+      100%/30px 30px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.54)) 50% 50% / calc(100% - 10px) calc(100% - 60px)
+      no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.54)) 50% 50% / calc(100% - 60px) calc(100% - 10px)
+      no-repeat,
+    linear-gradient(320deg, transparent 0%, #555560 100%),
+    linear-gradient(90deg, transparent 0%, #555555 100%);
+  border-radius: 30px;
+  padding: 10px;
+  box-sizing: border-box;
+  grid-area: 1 / 1 / 3 / 2;
+  margin-inline: 20px;
+  align-self: center;
+}

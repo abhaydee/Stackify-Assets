@@ -1,0 +1,25 @@
+.page_404 {
+  padding: 40px 0;
+  background: #fff;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+.page_404 img {
+  width: 100%;
+}
+
+.link_404 {
+  color: #fff !important;
+  padding: 10px 20px;
+  background: #f40202;
+  margin: 20px 0;
+  display: inline-block;
+}
+.content_box_404 {
+  margin-top: -50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

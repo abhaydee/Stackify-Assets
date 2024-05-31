@@ -1,0 +1,20 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 80px;
+  height: max-content;
+  margin-left: 10px;
+  margin-right: 10px;
+  min-height: calc(100vh - 241px);
+}
+
+.content {
+  padding: 20px;
+
+  background-color: var(--main-card-color);
+  border-radius: var(--main-border-radius);
+  -webkit-box-shadow: -1px 14px 8px 0px rgba(154, 159, 163, 0.2);
+  -moz-box-shadow: -1px 14px 8px 0px rgba(154, 159, 163, 0.2);
+  box-shadow: -1px 14px 8px 0px rgba(154, 159, 163, 0.2);
+}

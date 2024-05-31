@@ -1,0 +1,21 @@
+.main {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+
+  span {
+    font-size: 20px;
+  }
+}
+.main_image {
+  border-radius: var(--main-border-radius);
+}

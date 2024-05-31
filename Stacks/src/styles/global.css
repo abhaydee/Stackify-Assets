@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --max-width: 1100px;
+  --main-text-color: #fff;
+  --main-background-color: rgba(105, 155, 242, 0.8);
+  --main-card-color: #18181b;
+  --main-color: #2c80c8;
+  --main-border-radius: 16px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background-image: linear-gradient(to top, #18191D 0%, #D6D6D7 100%);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+}
