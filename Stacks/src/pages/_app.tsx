@@ -25,7 +25,7 @@ function MyApp({ Component, pageProps }: AppProps): ReactNode {
       <Meta />
       <Suspense fallback={<Loading />}>
         <Web3Provider>
-          <NextUIProvider>
+        <NextUIProvider style={{ backgroundImage: 'url("https://i.postimg.cc/pXBtwsvf/landingpage.png")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
             <ErrorBoundary>
               <div className="mx-auto max-w-screen-lg min-h-screen flex flex-col justify-between">
                 <Header />
