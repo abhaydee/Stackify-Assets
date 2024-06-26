@@ -19,14 +19,14 @@ plan:
             contract-name: arwamanager
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             cost: 57230
-            path: contracts/ArwaManager.clar
+            path: contracts/RwaManager.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: arwaproperty
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             cost: 20000
-            path: contracts/ArwaProperty.clar
+            path: contracts/RwaProperty.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
