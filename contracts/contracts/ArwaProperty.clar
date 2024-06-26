@@ -51,24 +51,32 @@
   )
 )
 
-;; Public function to mint a property token to a specific address
-(define-public (safe-mint (to principal) (token-id uint))
+;; Public function to mint multiple property tokens to specific addresses
+(define-public (batch-mint (to-list (list 100 principal)) (token-ids (list 100 uint)))
   (begin
-    ;; Ensure the token-id is within the max supply
-    (asserts! (< token-id (var-get max-supply)) (err u100))
     ;; Ensure the transaction sender is the property owner
     (asserts! (is-eq tx-sender (var-get property-owner)) (err u101))
-    ;; Set the property details in the 'properties' map
-    (map-set properties { id: token-id }
-      {
-        id: token-id,
-        name: (var-get property-docs),
-        symbol: "",
-        owner: to,
-        docs: (var-get property-docs),
-        price-in-wei: (var-get property-price)
-      })
-    (ok true)
+    (let ((max-supply (var-get max-supply))
+          (docs (var-get property-docs))
+          (price (var-get property-price)))
+      (map
+        (lambda (to token-id)
+          ;; Ensure the token-id is within the max supply
+          (asserts! (< token-id max-supply) (err u100))
+          ;; Set the property details in the 'properties' map
+          (map-set properties { id: token-id }
+            {
+              id: token-id,
+              name: docs,
+              symbol: "",
+              owner: to,
+              docs: docs,
+              price-in-wei: price
+            })
+        )
+        to-list token-ids)
+      (ok true)
+    )
   )
 )
 
@@ -76,17 +84,23 @@
 (define-read-only (token-uri (token-id uint))
   (let ((property (map-get? properties { id: token-id })))
     ;; Return the 'docs' field of the property
-    (ok (get docs (unwrap! property (err u102))))
+    (match property
+      property-details (ok (get docs property-details))
+      (err u102))
   )
 )
 
-;; Public function to burn a property token
-(define-public (burn (token-id uint))
+;; Public function to burn multiple property tokens
+(define-public (batch-burn (token-ids (list 100 uint)))
   (begin
     ;; Ensure the transaction sender is the property owner
     (asserts! (is-eq tx-sender (var-get property-owner)) (err u101))
-    ;; Delete the property from the 'properties' map
-    (map-delete properties { id: token-id })
+    (map
+      (lambda (token-id)
+        ;; Delete the property from the 'properties' map
+        (map-delete properties { id: token-id })
+      )
+      token-ids)
     (ok true)
   )
 )
