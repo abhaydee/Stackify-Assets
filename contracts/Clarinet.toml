@@ -6,30 +6,6 @@ telemetry = true
 cache_dir = './.cache'
 requirements = []
 
-[contracts.bitthetix]
-path = 'contracts/bitthetix.clar'
-clarity_version = 2
-epoch = 2.4
-
-[contracts.mock-price-feed]
-path = 'contracts/crypto-price-feed.clar'
-clarity_version = 2
-epoch = 2.4
-
-[contracts.sbtc]
-path = 'contracts/sBTC/asset.clar'
-clarity_version = 2
-epoch = 2.4
-
-[contracts.clarity-bitcoin-mini-deploy]
-path = 'contracts/sBTC/clarity-bitcoin-mini-deploy.clar'
-clarity_version = 2
-epoch = 2.4
-
-[contracts.clarity-bitcoin-mini]
-path = 'contracts/sBTC/clarity-bitcoin-mini.clar'
-clarity_version = 2
-epoch = 2.4
 
 [contracts.kycstore]
 path = 'contracts/KycStore.clar'
@@ -43,6 +19,21 @@ epoch = 2.4
 
 [contracts.arwamanager]
 path = 'contracts/RwaManager.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.propertymarketplace]
+path = 'contracts/PropertyMarketPlace.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.rentalcontract]
+path = 'contracts/RentalContract.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.escrowcontract]
+path = 'contracts/EscrowContract.clar'
 clarity_version = 2
 epoch = 2.4
 
