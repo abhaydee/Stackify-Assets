@@ -33,7 +33,7 @@ plan:
             contract-name: mock-price-feed
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             cost: 32900
-            path: contracts/mock-price-feed.clar
+            path: contracts/crypto-price-feed.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
