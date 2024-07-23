@@ -1,5 +1,3 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable no-magic-numbers */
 import { useEffect, useState } from 'react';
 
 import { PropertyStatus, PropertyType } from '@/data';
@@ -41,11 +39,18 @@ export const useFilterCards = (category: string): PropertyType[] => {
           ),
         );
       }
+      case 4: {
+        return setProperty(
+          verifierProperties.filter(
+            (element) => element.isRental === true,  // Filter for rental properties
+          ),
+        );
+      }
       default: {
         return setProperty(verifierProperties);
       }
     }
-  }, [category]);
+  }, [category, verifierProperties]);
 
   return property;
 };

@@ -31,11 +31,10 @@ const PropertyCards = (): JSX.Element => {
 
   return (
     <div>
-       <p className="text-[var(--main-text-color)] mb-10 text-3xl">
-          {isVerifier ? 'Tokens' : 'Your tokens'}
-        </p>
-        <div className="flex flex-col sm:flex-col w-full justify-between items-end mx-5"  style={{margin:'01'}}>
-       
+      <p className="text-[var(--main-text-color)] mb-10 text-3xl">
+        {isVerifier ? 'Tokens' : 'Your tokens'}
+      </p>
+      <div className="flex flex-col sm:flex-col w-full justify-between items-end mx-5" style={{ margin: '01' }}>
         {isVerifier ? (
           <Tabs
             size="md"
@@ -48,19 +47,17 @@ const PropertyCards = (): JSX.Element => {
             <Tab title="Accepted" key={1} />
             <Tab title="Pending" key={2} />
             <Tab title="Rejected" key={3} />
+            <Tab title="Rental" key={4} />  {/* Added rental tab */}
           </Tabs>
         ) : (
           <>
-          <Button onClick={go('/create')} color="danger">
-            Create new
-          </Button>
-
-          <Button onClick={go('http://localhost:3003')} color="danger" style={{marginTop : 15}}>
-            Trade
-          </Button>
-          
+            <Button onClick={go('/create')} color="danger">
+              Create new
+            </Button>
+            <Button onClick={go('http://localhost:3003')} color="danger" style={{ marginTop: 15 }}>
+              Trade
+            </Button>
           </>
-
         )}
       </div>
       <div className="mt-4 sm:mt-0 gap-3 grid grid-cols-1 sm:grid-cols-4">
@@ -78,8 +75,7 @@ const PropertyCards = (): JSX.Element => {
             <>
               {properties?.length === 0 && (
                 <p>
-                  No tokens yet! Click button above to create your first
-                  property!
+                  No tokens yet! Click button above to create your first property!
                 </p>
               )}
             </>
