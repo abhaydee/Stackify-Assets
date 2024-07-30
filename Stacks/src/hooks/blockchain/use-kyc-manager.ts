@@ -1,55 +1,74 @@
-import { useState } from 'react';
-import { useAccount, useContractRead, useNetwork } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { StacksTestnet } from '@stacks/network';
+import { userSession } from './user-session'; // Assuming you have a user session setup
+import { callReadOnlyFunction, callPublicFunction } from '@stacks/transactions';
 
-import { BlockchainConstants, KycManagerAbi } from '@/data';
+const useKycManager = () => {
+  const [isKycPassed, setIsKycPassed] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const useKycManager = () => {
-  const { address } = useAccount();
-  const { chain } = useNetwork();
-  const [globalLoading, setGlobalLoading] = useState<boolean>(false);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  const contractAddress = 'ST3J...'; // Your contract address
+  const contractName = 'kycStore';
 
-  const { data, isLoading, isError, refetch, isRefetching } = useContractRead({
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    address: BlockchainConstants[chain?.id || '31'].kyc,
-    abi: KycManagerAbi,
-    args: [address],
-    functionName: 'addressToKycState',
-  });
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const updateKyc = async () => {
-    setGlobalLoading(true);
+  const fetchKycStatus = async () => {
+    setIsLoading(true);
     try {
-      await fetch('/api/kyc-manager', {
-        method: 'post',
-        body: JSON.stringify({
-          address,
-          chain: String(chain?.id || '31'),
-        }),
-      });
-    } catch (error) {
-      console.log('Error', error);
-      setGlobalLoading(false);
-      return;
-    }
+      const options = {
+        contractAddress,
+        contractName,
+        functionName: 'check-kyc-status',
+        functionArgs: [],
+        network: new StacksTestnet(),
+        senderAddress: userSession.loadUserData().profile.stxAddress.testnet,
+      };
 
-    const timeout = await setInterval(async () => {
-      const referenceData = await refetch();
-      if (referenceData.data) {
-        clearInterval(timeout);
-        setGlobalLoading(false);
-      }
-    }, 300);
+      const response = await callReadOnlyFunction(options);
+      setIsKycPassed(response.result);
+    } catch (error) {
+      console.error(error);
+      setIsKycPassed(null);
+    }
+    setIsLoading(false);
   };
 
+  const updateKyc = async () => {
+    setIsLoading(true);
+    try {
+      const options = {
+        contractAddress,
+        contractName,
+        functionName: 'set-kyc-status',
+        functionArgs: [
+          userSession.loadUserData().profile.stxAddress.testnet,
+          true,
+        ],
+        network: new StacksTestnet(),
+        senderAddress: userSession.loadUserData().profile.stxAddress.testnet,
+        postConditionMode: 0,
+      };
+
+      const response = await callPublicFunction(options);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      fetchKycStatus();
+    } catch (error) {
+      console.error(error);
+      setIsKycPassed(false);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchKycStatus();
+  }, []);
+
   return {
-    isKycPassed: data,
-    isLoading: isLoading || isRefetching || globalLoading,
-    isError,
+    isKycPassed,
+    isLoading,
     updateKyc,
   };
 };
+
+export { useKycManager };
