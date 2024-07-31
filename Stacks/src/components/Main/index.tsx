@@ -15,12 +15,15 @@ const Main: React.FC = () => {
   };
 
   return (
-    <div className=" flex flex-col items-center justify-center space-y-4 sm:flex-row mx-2  ">
-      <Image className={styles.main_image} src={Arwa} alt={'Arwa'} style= {{ width : '70%', height: '600pxAR'}} />
+    <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row mx-2">
+      <Image className={styles.main_image} src={Arwa} alt={'Arwa'} style={{ width: '70%', height: '600px' }} />
       <div className="text-center mt-4 sm:mt-0 mx-4 ml-20">
         <span className="text-lg">Start your journey now!</span>
         <Button className="mt-4" color="white" onClick={go('/create')}>
           Tokenise your property
+        </Button>
+        <Button className="mt-4" color="white" onClick={go('/market')}>
+          Property Market
         </Button>
       </div>
     </div>
