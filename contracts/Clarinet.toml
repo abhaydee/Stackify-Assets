@@ -37,6 +37,39 @@ path = 'contracts/EscrowContract.clar'
 clarity_version = 2
 epoch = 2.4
 
+# [contracts.bitthetix]
+# path = 'contracts/infinitystacks.clar'
+# clarity_version = 2
+# epoch = 2.4
+
+# [contracts.mock-price-feed]
+# path = 'contracts/mock-price-feed.clar'
+# clarity_version = 2
+# epoch = 2.4
+
+
+# [contracts.sbtc]
+# path = 'contracts/sBTC/asset.clar'
+# clarity_version = 2
+# epoch = 2.4
+
+# [contracts.clarity-bitcoin-mini-deploy]
+# path = 'contracts/sBTC/clarity-bitcoin-mini-deploy.clar'
+# clarity_version = 2
+# epoch = 2.4
+
+# [contracts.clarity-bitcoin-mini]
+# path = 'contracts/sBTC/clarity-bitcoin-mini.clar'
+# clarity_version = 2
+# epoch = 2.4
+
+[contracts.counter]
+path = 'contracts/counter.clar'
+clarity_version = 2
+epoch = 2.4
+
+
+
 [repl.analysis]
 passes = ['check_checker']
 
