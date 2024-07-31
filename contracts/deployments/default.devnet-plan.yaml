@@ -11,35 +11,77 @@ plan:
         - contract-publish:
             contract-name: kycstore
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 5840
+            cost: 10740
             path: contracts/KycStore.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: arwamanager
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 57230
+            cost: 66080
             path: contracts/RwaManager.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: arwaproperty
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 20000
+            cost: 35820
             path: contracts/RwaProperty.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: mock-price-feed
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 32900
+            path: contracts/mock-price-feed.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: clarity-bitcoin-mini
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 52940
+            path: contracts/sBTC/clarity-bitcoin-mini.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: sbtc
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 44980
+            path: contracts/sBTC/asset.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: bitthetix
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 76600
+            path: contracts/infinitystacks.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: clarity-bitcoin-mini-deploy
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 52950
+            path: contracts/sBTC/clarity-bitcoin-mini-deploy.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: escrowcontract
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 52950
+            cost: 11730
             path: contracts/EscrowContract.clar
+            anchor-block-only: true
+            clarity-version: 2
+        - contract-publish:
+            contract-name: propertymarketplace
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 15300
+            path: contracts/PropertyMarketPlace.clar
             anchor-block-only: true
             clarity-version: 2
         - contract-publish:
             contract-name: rentalcontract
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 52950
+            cost: 16920
             path: contracts/RentalContract.clar
             anchor-block-only: true
             clarity-version: 2
