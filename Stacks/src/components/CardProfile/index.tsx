@@ -12,6 +12,7 @@ import {
   StatusToText,
 } from '@/data';
 import { useProperty } from '@/hooks/blockchain/manager/use-property';
+import { useKycManager } from '@/hooks/blockchain/use-kyc-manager';
 import { startAndEnd, StatusToColor } from '@/utils';
 
 import CardProfileMinted from '../CardProfileMinted';
@@ -22,25 +23,25 @@ type TCardProfile = {
   isVerifier: boolean;
 };
 
-const adressLenght = 6;
+const addressLength = 6;
 
 const CardProfile: React.FC<TCardProfile> = ({
   property,
   isVerifier,
 }): JSX.Element => {
   const { push } = useRouter();
+  const { isKycPassed, isLoading: kycLoading, updateKyc } = useKycManager();
 
-  const [load, setload] = useState(false);
+  const [load, setLoad] = useState(false);
   const { getPropertyCollectionInfo } = useProperty();
   const [propertyCollection, setPropertyCollection] = useState<{
     maxSupply: number;
-    propertryPrice: number;
+    propertyPrice: number;
   }>();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+
   const handleLoad = (info): void => {
     if (info) {
-      setload(true);
+      setLoad(true);
     }
   };
 
@@ -110,7 +111,7 @@ const CardProfile: React.FC<TCardProfile> = ({
               href={`https://explorer.testnet.rootstock.io/address/${property.collectionAddress}`}
               target="_blank"
             >
-              {startAndEnd(property.collectionAddress, adressLenght)}
+              {startAndEnd(property.collectionAddress, addressLength)}
             </Link>
           </div>
         )}
@@ -119,23 +120,38 @@ const CardProfile: React.FC<TCardProfile> = ({
           <p className="text-white"> {property.symbol}</p>
         </div>
         <CardProfileMinted propertyCollection={propertyCollection} />
-        {needVerify && (
-          <Button
-            color="primary"
-            onPress={goWithQuery('/approve')}
-            className="align-middle w-full mt-4"
-          >
-            Take to work
-          </Button>
-        )}
-        {canMint && (
-          <Button
-            color="primary"
-            onPress={goWithQuery('/mint')}
-            className="align-middle w-full mt-4"
-          >
-            Mint
-          </Button>
+        {kycLoading ? (
+          <p>Loading KYC status...</p>
+        ) : (
+          <>
+            {!isKycPassed && (
+              <Button
+                color="var(--main-color)"
+                onClick={updateKyc}
+                className="align-middle w-full mt-4"
+              >
+                Pass KYC to access
+              </Button>
+            )}
+            {isKycPassed && needVerify && (
+              <Button
+                color="primary"
+                onPress={goWithQuery('/approve')}
+                className="align-middle w-full mt-4"
+              >
+                Take to work
+              </Button>
+            )}
+            {isKycPassed && canMint && (
+              <Button
+                color="primary"
+                onPress={goWithQuery('/mint')}
+                className="align-middle w-full mt-4"
+              >
+                Mint
+              </Button>
+            )}
+          </>
         )}
       </CardBody>
     </Card>

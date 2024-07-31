@@ -15,9 +15,9 @@ const KYCContainer = (): JSX.Element => {
         <p>Loading</p>
       ) : (
         <p
-          style={{ color: isKycPassed ? '' : 'color: var(--main-text-color)' }}
+          style={{ color: isKycPassed ? '' : 'var(--main-text-color)' }}
         >
-          {isKycPassed ? 'Kyc passed' : 'Kyc not passed'}
+          {isKycPassed ? 'KYC passed' : 'KYC not passed'}
         </p>
       )}
       {!isKycPassed && (
