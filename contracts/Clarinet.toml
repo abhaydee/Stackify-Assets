@@ -36,7 +36,7 @@ epoch = 2.4
 path = 'contracts/EscrowContract.clar'
 clarity_version = 2
 epoch = 2.4
-[contracts.bitthetix]
+[contracts.infinitystacks]
 path = 'contracts/infinitystacks.clar'
 clarity_version = 2
 epoch = 2.4
