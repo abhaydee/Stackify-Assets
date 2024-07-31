@@ -60,24 +60,9 @@ plan:
             path: contracts/RwaProperty.clar
             clarity-version: 2
         - emulated-contract-publish:
-            contract-name: mock-price-feed
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/mock-price-feed.clar
-            clarity-version: 2
-        - emulated-contract-publish:
             contract-name: clarity-bitcoin-mini
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/sBTC/clarity-bitcoin-mini.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: sbtc
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/sBTC/asset.clar
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: bitthetix
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/infinitystacks.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: clarity-bitcoin-mini-deploy
@@ -85,14 +70,24 @@ plan:
             path: contracts/sBTC/clarity-bitcoin-mini-deploy.clar
             clarity-version: 2
         - emulated-contract-publish:
-            contract-name: counter
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/counter.clar
-            clarity-version: 2
-        - emulated-contract-publish:
             contract-name: escrowcontract
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/EscrowContract.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: mock-price-feed
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/mock-price-feed.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: sbtc
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/sBTC/asset.clar
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: infinitystacks
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/infinitystacks.clar
             clarity-version: 2
         - emulated-contract-publish:
             contract-name: kycstore
