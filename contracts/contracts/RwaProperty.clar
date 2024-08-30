@@ -16,6 +16,63 @@
 (define-data-var property-docs (string-ascii 100) "")
 (define-data-var property-owner principal tx-sender)
 
+;; New Feature 1: Transfer Ownership of a Property
+(define-public (transfer-ownership (property-id uint) (new-owner principal))
+  (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    ;; Ensure that the sender is the current owner
+    (asserts! (is-eq (get owner property) tx-sender) (err u105))
+    ;; Update the owner in the properties map
+    (map-set properties { id: property-id }
+      (merge property { owner: new-owner }))
+    (ok true)
+  )
+)
+
+;; New Feature 2: Rental Agreements for Properties
+(define-data-var rental-agreements (map uint { tenant: principal, rent: uint, start-time: uint, end-time: uint }))
+
+(define-public (create-rental-agreement (property-id uint) (tenant principal) (rent uint) (duration uint))
+  (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    ;; Ensure the sender is the owner of the property
+    (asserts! (is-eq (get owner property) tx-sender) (err u102))
+    (let ((start-time (block-height)))
+      (map-set rental-agreements { property-id: property-id }
+        { tenant: tenant, rent: rent, start-time: start-time, end-time: (+ start-time duration) })
+      (ok true)
+    )
+  )
+)
+
+;; New Feature 3: Tracking Property Status History
+(define-data-var property-status-history (map uint (list uint)))
+
+(define-public (log-property-status-change (property-id uint) (status uint))
+  (let ((history (unwrap-panic (map-get? property-status-history { property-id: property-id }))))
+    (map-set property-status-history { property-id: property-id } (cons status history))
+    (ok true)
+  )
+)
+
+;; New Feature 4: Verification Fee for Properties
+(define-data-var verification-fee uint u1000) ;; Fee to be paid for verification
+
+(define-public (set-verification-fee (fee uint))
+  (begin
+    (asserts! (is-eq tx-sender (var-get property-owner)) (err u100))
+    (var-set verification-fee fee)
+    (ok true)
+  )
+)
+
+(define-public (pay-verification-fee (property-id uint))
+  (begin
+    (asserts! (>= (get-balance tx-sender) (var-get verification-fee)) (err u106))
+    ;; Deduct the fee from the sender and assign it to the verifier
+    (transfer (var-get verification-fee) tx-sender (get owner (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    (ok true)
+  )
+)
+
 ;; Public function to create a new property
 (define-public (create-property (id uint) (name (string-ascii 100)) (symbol (string-ascii 10)) (owner principal) (docs (string-ascii 100)) (price-in-wei uint))
   (begin
@@ -109,3 +166,4 @@
 (define-read-only (supports-interface (interface-id (buff 4)))
   (ok true)
 )
+
