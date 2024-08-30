@@ -14,11 +14,12 @@ import {
 const key = '753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601';
 const address = getAddressFromPrivateKey(key, TransactionVersion.Testnet);
 const network = new StacksMocknet();
-
 const satoshiPerBTC = 100_000_000;
+const updateInterval = 120_000; // Default 2 minutes
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
+// Feed data
 const feeds = [
     { name: 'US Dollar', ticker: 'USDT', price: 100_000_000, type: 'Crypto', impliedVolatility: Math.round(0.3 * satoshiPerBTC), pythFeedId: '2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b' },
     { name: 'Arbitrum', ticker: 'ARB', price: 0, type: 'Crypto', impliedVolatility: Math.round(14.3 * satoshiPerBTC), pythFeedId: '3fa4252848f9f0a1480be62745a4629d9eb1322aebab8a791e344b3b9c1adcf5' },
@@ -32,45 +33,67 @@ const feeds = [
     { name: 'XRP', ticker: 'XRP', price: 0, type: 'Crypto', impliedVolatility: Math.round(8.1 * satoshiPerBTC), pythFeedId: 'ec5d399846a9209f3fe5881d70aae9268c94339ff9817e8d18ff19fa05eea1c8' },
 ];
 
-
-// Fetch feed data off-chain and udpate feeds.
+// Fetch feed data off-chain and update feeds
 const benchmarkBaseUrl = "https://benchmarks.pyth.network/v1/shims/tradingview/history";
 const fetchRecentFeedData = async () => {
-    // Obtain most recent price data for all feeds.
-    for (const feed of feeds) {
-        console.log("logging feed", feed)
-        const symbol = `${feed.type}.${feed.ticker}/USD`;
-        const now = Math.floor(Date.now() / 1000);
-        const resolution = 1;
-        const barCount = 1;
-        const startTime = now - (resolution * barCount * 60);
+    try {
+        for (const feed of feeds) {
+            const symbol = `${feed.type}.${feed.ticker}/USD`;
+            const now = Math.floor(Date.now() / 1000);
+            const resolution = 1;
+            const barCount = 1;
+            const startTime = now - (resolution * barCount * 60);
 
-        const pythUrl = `${benchmarkBaseUrl}?symbol=${symbol}&resolution=${resolution}&from=${startTime}&to=${now}`;
-        const res = await fetch(pythUrl)
-        if (!res.ok) {
-            return [];
+            const pythUrl = `${benchmarkBaseUrl}?symbol=${symbol}&resolution=${resolution}&from=${startTime}&to=${now}`;
+            const res = await fetch(pythUrl);
+            if (!res.ok) throw new Error(`Error fetching feed data for ${symbol}`);
+            const rawData = await res.json();
+            feed.price = Math.ceil(satoshiPerBTC * rawData["c"][0]);
         }
-
-        const rawData = (await res.json());
-        console.log("rawdata", rawData)
-        feed.price = Math.ceil(satoshiPerBTC * rawData["c"][0]);
-        console.log("the price", feed.price)
+    } catch (error) {
+        console.error("Failed to fetch feed data:", error);
     }
-}
+};
+
+const handleTransactionBroadcast = async (transaction, network) => {
+    try {
+        const broadcastResponse = await broadcastTransaction(transaction, network);
+        const txId = broadcastResponse.txid;
+        if (!txId) throw new Error("Transaction failed");
+        console.log(`Transaction ID: ${txId}`);
+        return txId;
+    } catch (error) {
+        console.error("Error broadcasting transaction:", error);
+    }
+};
+
+const waitForTransactionConfirmation = async (txId, network) => {
+    let retries = 10;
+    while (retries > 0) {
+        const txStatus = await fetch(`${network.coreApiUrl}/extended/v1/tx/${txId}`);
+        const statusData = await txStatus.json();
+        if (statusData.tx_status === 'success') {
+            console.log("Transaction confirmed:", txId);
+            return true;
+        }
+        await delay(10_000); // Retry every 10 seconds
+        retries--;
+    }
+    console.log("Transaction not confirmed in time:", txId);
+    return false;
+};
+
+const notifyUser = (message) => {
+    console.log(`Notification: ${message}`);
+};
 
 const addFeeds = async () => {
-
     const nonceInfo = await fetch(`${network.coreApiUrl}/extended/v1/address/${address}/nonces`);
-    console.log("the nonce info", nonceInfo)
     const data = await nonceInfo.json();
-    console.log("logging data", data)
     let nonce = data.possible_next_nonce;
-
-    console.log(`Adding mock feeds on-chain (nonce: ${nonce}).`);
 
     await fetchRecentFeedData();
 
-    const postConditions = [];
     const txOptions = {
         contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
         contractName: 'mock-price-feed',
@@ -86,29 +109,22 @@ const addFeeds = async () => {
         senderKey: key,
         validateWithAbi: true,
         network,
-        postConditions,
+        postConditions: [],
         anchorMode: AnchorMode.Any,
         nonce,
     };
     let transaction = await makeContractCall(txOptions);
-    let broadcastResponse = await broadcastTransaction(transaction, network);
-    let txId = broadcastResponse.txid;
-    console.log(txId, broadcastResponse);
-}
+    let txId = await handleTransactionBroadcast(transaction, network);
+    if (txId) await waitForTransactionConfirmation(txId, network);
+};
 
 const addSupportedFeeds = async () => {
-
     const nonceInfo = await fetch(`${network.coreApiUrl}/extended/v1/address/${address}/nonces`);
     const data = await nonceInfo.json();
     let nonce = data.possible_next_nonce;
 
-    console.log(`Setting supported feeds for Bitthetix on-chain (nonce: ${nonce}).`);
-
-    const supportedFeeds = Array.from({ length: feeds.length }, (_, i) => {
-        return uintCV(i);
-    });
-    const postConditions = [];
-    const addFeedOptions = {
+    const supportedFeeds = Array.from({ length: feeds.length }, (_, i) => uintCV(i));
+    const txOptions = {
         contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
         contractName: 'bitthetix',
         functionName: 'set-supported-feeds',
@@ -116,55 +132,53 @@ const addSupportedFeeds = async () => {
         senderKey: key,
         validateWithAbi: true,
         network,
-        postConditions,
+        postConditions: [],
         anchorMode: AnchorMode.Any,
         nonce,
     };
-    let transaction = await makeContractCall(addFeedOptions);
-    let broadcastResponse = await broadcastTransaction(transaction, network);
-    let txId = broadcastResponse.txid;
-    console.log(txId, broadcastResponse);
-}
+    let transaction = await makeContractCall(txOptions);
+    let txId = await handleTransactionBroadcast(transaction, network);
+    if (txId) await waitForTransactionConfirmation(txId, network);
+};
 
 const updateSupportedFeeds = async () => {
-
     const nonceInfo = await fetch(`${network.coreApiUrl}/extended/v1/address/${address}/nonces`);
     const data = await nonceInfo.json();
     let nonce = data.possible_next_nonce;
 
-    console.log(`Updating feed data for InfinityStack on-chain (nonce: ${nonce}).`);
-
     await fetchRecentFeedData();
 
-    const supportedFeeds = Array.from({ length: feeds.length }, (_, i) => {
-        return tupleCV({ 'feed-id': uintCV(i), 'current-value': uintCV(feeds[i].price) });
-    });
-    const postConditions = [];
-    const addFeedOptions = {
+    const txOptions = {
         contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-        contractName: 'mock-price-feed',
+        contractName: 'bitthetix',
         functionName: 'update-feeds',
-        functionArgs: [listCV(supportedFeeds)],
+        functionArgs: [listCV(feeds.map(feed => tupleCV({
+            "current-value": uintCV(Math.round(feed.price)),
+            "ticker": stringAsciiCV(feed.ticker),
+            "type": stringAsciiCV(feed.type),
+            "name": stringAsciiCV(feed.name),
+            "implied-volatility": uintCV(Math.round(feed.impliedVolatility)),
+            "pyth-feed-id": stringAsciiCV(feed.pythFeedId),
+        })))],
         senderKey: key,
         validateWithAbi: true,
         network,
-        postConditions,
+        postConditions: [],
         anchorMode: AnchorMode.Any,
         nonce,
     };
-    let transaction = await makeContractCall(addFeedOptions);
-    let broadcastResponse = await broadcastTransaction(transaction, network);
-    let txId = broadcastResponse.txid;
-    console.log(txId, broadcastResponse);
-}
+    let transaction = await makeContractCall(txOptions);
+    let txId = await handleTransactionBroadcast(transaction, network);
+    if (txId) await waitForTransactionConfirmation(txId, network);
+};
 
-// Initialize feed data.
-await addFeeds();
-await delay(4000);
-await addSupportedFeeds();
-await delay(4000);
+// Start the update loop
+const startFeedUpdateLoop = async () => {
+    while (true) {
+        await updateSupportedFeeds();
+        notifyUser("Feed prices updated successfully.");
+        await delay(updateInterval);
+    }
+};
 
-// Update on-chain feed data every 2 minutes.
-setInterval(() => {
-    updateSupportedFeeds();
-}, 120_000);
+startFeedUpdateLoop().catch(console.error);
