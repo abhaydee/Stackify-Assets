@@ -51,7 +51,7 @@
 ;; Read-only function to get properties of a specific user
 (define-read-only (get-user-properties (user principal))
   (ok (filter (lambda (property) (is-eq (get owner property) user))
-              (map-entries properties))))
+              (map-entries properties)))
 )
 
 ;; Helper function to filter properties by owner
@@ -147,5 +147,62 @@
     (ok (filter (lambda (property) (or (is-eq tx-sender (get verifier property)) 
                                        (is-none (get verifier property))))
                 (map-values properties)))
+  )
+)
+
+;; Feature 1: Transfer ownership of a property
+(define-public (transfer-ownership (property-id uint) (new-owner principal))
+  (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    ;; Ensure that the sender is the current owner
+    (asserts! (is-eq (get owner property) tx-sender) (err u105))
+    ;; Update the owner in the properties map
+    (map-set properties { id: property-id }
+      (merge property { owner: new-owner }))
+    (ok true)
+  )
+)
+
+;; Feature 2: Support for rental agreements
+(define-data-var rental-agreements (map uint { tenant: principal, rent: uint, start-time: uint, end-time: uint }))
+
+(define-public (create-rental-agreement (property-id uint) (tenant principal) (rent uint) (duration uint))
+  (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    ;; Ensure the sender is the owner of the property
+    (asserts! (is-eq (get owner property) tx-sender) (err u102))
+    (let ((start-time (block-height)))
+      (map-set rental-agreements { property-id: property-id }
+        { tenant: tenant, rent: rent, start-time: start-time, end-time: (+ start-time duration) })
+      (ok true)
+    )
+  )
+)
+
+;; Feature 3: Tracking property status changes
+(define-data-var property-status-history (map uint (list uint)))
+
+(define-public (log-property-status-change (property-id uint) (status uint))
+  (let ((history (unwrap-panic (map-get? property-status-history { property-id: property-id }))))
+    (map-set property-status-history { property-id: property-id } (cons status history))
+    (ok true)
+  )
+)
+
+;; Feature 4: Fee management for verifiers
+(define-data-var verification-fee uint u1000) ;; Fee to be paid for verification
+
+(define-public (set-verification-fee (fee uint))
+  (begin
+    (asserts! (is-eq tx-sender (var-get owner)) (err u100))
+    (var-set verification-fee fee)
+    (ok true)
+  )
+)
+
+(define-public (pay-verification-fee (property-id uint))
+  (begin
+    (asserts! (>= (get-balance tx-sender) (var-get verification-fee)) (err u106))
+    ;; Deduct the fee from sender and assign it to the verifier
+    (transfer (var-get verification-fee) tx-sender (get verifier (unwrap! (map-get? properties { id: property-id }) (err u101))))
+    (ok true)
   )
 )
