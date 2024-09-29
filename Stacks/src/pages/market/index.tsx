@@ -3,6 +3,7 @@ import { FC } from 'react';
 import MarketCards from '@/components/MarketCards';
 
 import styles from './styles.module.scss';
+import PropertyManagement from '@/components/PropertyManagement';
 
 const Market: FC = () => {
   return (
@@ -10,6 +11,7 @@ const Market: FC = () => {
       <div>
         <p className={styles.tokenText}>Marketplace</p>
         <MarketCards />
+        <PropertyManagement/>
       </div>
     </div>
   );
