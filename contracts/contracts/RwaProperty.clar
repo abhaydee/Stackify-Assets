@@ -16,28 +16,38 @@
 (define-data-var property-docs (string-ascii 100) "")
 (define-data-var property-owner principal tx-sender)
 
-;; New Feature 1: Transfer Ownership of a Property
+;; Event Logging
+(define-event ownership-transferred (property-id uint old-owner principal new-owner principal))
+(define-event rental-agreement-created (property-id uint tenant principal rent uint start-time uint end-time uint))
+
+;; New Feature 1: Transfer Ownership of a Property with additional restrictions
 (define-public (transfer-ownership (property-id uint) (new-owner principal))
   (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
     ;; Ensure that the sender is the current owner
     (asserts! (is-eq (get owner property) tx-sender) (err u105))
+    ;; Ensure the new owner is not null or the same as the old owner
+    (asserts! (is-none (get owner property)) (err u108))
     ;; Update the owner in the properties map
     (map-set properties { id: property-id }
       (merge property { owner: new-owner }))
+    (emit-event (ownership-transferred property-id tx-sender new-owner))
     (ok true)
   )
 )
 
-;; New Feature 2: Rental Agreements for Properties
+;; New Feature 2: Enhanced Rental Agreements for Properties with additional checks
 (define-data-var rental-agreements (map uint { tenant: principal, rent: uint, start-time: uint, end-time: uint }))
 
 (define-public (create-rental-agreement (property-id uint) (tenant principal) (rent uint) (duration uint))
   (let ((property (unwrap! (map-get? properties { id: property-id }) (err u101))))
     ;; Ensure the sender is the owner of the property
     (asserts! (is-eq (get owner property) tx-sender) (err u102))
+    ;; Ensure the rental duration is positive
+    (asserts! (> duration u0) (err u103))
     (let ((start-time (block-height)))
       (map-set rental-agreements { property-id: property-id }
         { tenant: tenant, rent: rent, start-time: start-time, end-time: (+ start-time duration) })
+      (emit-event (rental-agreement-created property-id tenant rent start-time (+ start-time duration)))
       (ok true)
     )
   )
@@ -47,7 +57,7 @@
 (define-data-var property-status-history (map uint (list uint)))
 
 (define-public (log-property-status-change (property-id uint) (status uint))
-  (let ((history (unwrap-panic (map-get? property-status-history { property-id: property-id }))))
+  (let ((history (unwrap! (map-get? property-status-history { property-id: property-id }) (err u104))))
     (map-set property-status-history { property-id: property-id } (cons status history))
     (ok true)
   )
@@ -76,6 +86,8 @@
 ;; Public function to create a new property
 (define-public (create-property (id uint) (name (string-ascii 100)) (symbol (string-ascii 10)) (owner principal) (docs (string-ascii 100)) (price-in-wei uint))
   (begin
+    ;; Ensure the property ID does not already exist
+    (asserts! (is-none (map-get? properties { id: id })) (err u107))
     ;; Set the property details in the 'properties' map
     (map-set properties { id: id }
       {
@@ -90,25 +102,7 @@
   )
 )
 
-;; Read-only function to get property details by id
-(define-read-only (get-property (id uint))
-  (map-get? properties { id: id })
-)
-
-;; Public function to set the maximum supply, price, and documents for properties
-(define-public (mint (supply uint) (price uint) (docs (string-ascii 100)))
-  (begin
-    ;; Ensure the transaction sender is the property owner
-    (asserts! (is-eq tx-sender (var-get property-owner)) (err u101))
-    ;; Set the max supply, property price, and property documents
-    (var-set max-supply supply)
-    (var-set property-price price)
-    (var-set property-docs docs)
-    (ok true)
-  )
-)
-
-;; Public function to mint multiple property tokens to specific addresses
+;; Enhanced Batch Minting
 (define-public (batch-mint (to-list (list 100 principal)) (token-ids (list 100 uint)))
   (begin
     ;; Ensure the transaction sender is the property owner
@@ -137,17 +131,7 @@
   )
 )
 
-;; Read-only function to get the URI of a property token
-(define-read-only (token-uri (token-id uint))
-  (let ((property (map-get? properties { id: token-id })))
-    ;; Return the 'docs' field of the property
-    (match property
-      property-details (ok (get docs property-details))
-      (err u102))
-  )
-)
-
-;; Public function to burn multiple property tokens
+;; Enhanced Batch Burning
 (define-public (batch-burn (token-ids (list 100 uint)))
   (begin
     ;; Ensure the transaction sender is the property owner
@@ -166,4 +150,3 @@
 (define-read-only (supports-interface (interface-id (buff 4)))
   (ok true)
 )
-
