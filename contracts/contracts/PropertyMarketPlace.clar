@@ -14,6 +14,8 @@
     (map-set listings 
       { property-id: property-id } 
       { seller: tx-sender, price: price, status: true, expiration: (+ (block-height) expiration-period) })
+    ;; Emit event for listing
+    (emit-event-listing property-id price tx-sender)
     (ok true)
   )
 )
@@ -32,6 +34,8 @@
         (contract-call? .RwaProperty transfer-property property-id tx-sender)
         ;; Update listing status
         (map-set listings { property-id: property-id } { seller: seller, price: price, status: false, expiration: u0 })
+        ;; Emit event for purchase
+        (emit-event-purchase property-id tx-sender price)
         (ok true)
       )
     )
@@ -43,6 +47,8 @@
   (let ((listing (unwrap! (map-get? listings { property-id: property-id }) (err u103))))
     (asserts! (is-eq (get seller listing) tx-sender) (err u102))
     (map-delete listings { property-id: property-id })
+    ;; Emit event for cancellation
+    (emit-event-cancellation property-id tx-sender)
     (ok true)
   )
 )
@@ -72,48 +78,58 @@
   )
 )
 
-;; Modify list-property to include event emission
-(define-public (list-property (property-id uint) (price uint))
-  (let ((property (unwrap! (contract-call? .RwaProperty get-property property-id) (err u101))))
-    (asserts! (is-eq (get owner property) tx-sender) (err u102)) ;; Ensure only owner can list
-    (map-set listings 
-      { property-id: property-id } 
-      { seller: tx-sender, price: price, status: true, expiration: (+ (block-height) expiration-period) })
-    ;; Emit event for listing
-    (emit-event-listing property-id price tx-sender)
+;; New function to update the price of a listed property
+(define-public (update-price (property-id uint) (new-price uint))
+  (let ((listing (unwrap! (map-get? listings { property-id: property-id }) (err u103))))
+    (asserts! (is-eq (get seller listing) tx-sender) (err u102)) ;; Ensure only seller can update price
+    (map-set listings { property-id: property-id } { seller: (get seller listing), price: new-price, status: (get status listing), expiration: (get expiration listing) })
     (ok true)
   )
 )
 
-;; Modify buy-property to include event emission
-(define-public (buy-property (property-id uint))
+;; New function to extend the expiration period of a listing
+(define-public (extend-expiration (property-id uint) (additional-blocks uint))
   (let ((listing (unwrap! (map-get? listings { property-id: property-id }) (err u103))))
-    (asserts! (is-eq (get status listing) true) (err u104))
-    (asserts! (<= (block-height) (get expiration listing)) (err u105)) ;; Ensure listing is not expired
-    (let ((price (get price listing))
-          (seller (get seller listing)))
-      (begin
-        ;; Transfer STX tokens from buyer to seller
-        (unwrap! (stx-transfer? price tx-sender seller) (err u106))
-        ;; Transfer property ownership from seller to buyer
-        (contract-call? .RwaProperty transfer-property property-id tx-sender)
-        ;; Update listing status
-        (map-set listings { property-id: property-id } { seller: seller, price: price, status: false, expiration: u0 })
-        ;; Emit event for purchase
-        (emit-event-purchase property-id tx-sender price)
-        (ok true)
-      )
+    (asserts! (is-eq (get seller listing) tx-sender) (err u102)) ;; Ensure only seller can extend expiration
+    (map-set listings { property-id: property-id } { seller: (get seller listing), price: (get price listing), status: (get status listing), expiration: (+ (get expiration listing) additional-blocks) })
+    (ok true)
+  )
+)
+
+;; New function to get the details of a listing
+(define-public (get-listing (property-id uint))
+  (let ((listing (map-get? listings { property-id: property-id })))
+    (match listing
+      listing (ok listing)
+      (err u103)
     )
   )
 )
 
-;; Modify cancel-listing to include event emission
-(define-public (cancel-listing (property-id uint))
-  (let ((listing (unwrap! (map-get? listings { property-id: property-id }) (err u103))))
-    (asserts! (is-eq (get seller listing) tx-sender) (err u102))
-    (map-delete listings { property-id: property-id })
-    ;; Emit event for cancellation
-    (emit-event-cancellation property-id tx-sender)
-    (ok true)
+;; New function to get all active listings
+(define-public (get-active-listings)
+  (let ((active-listings (filter
+    (lambda (listing)
+      (and (is-eq (get status listing) true)
+           (<= (block-height) (get expiration listing))))
+    (map-to-list listings))))
+    (ok active-listings)
+  )
+)
+
+;; New function to get all listings by a specific seller
+(define-public (get-listings-by-seller (seller principal))
+  (let ((seller-listings (filter
+    (lambda (listing)
+      (is-eq (get seller listing) seller))
+    (map-to-list listings))))
+    (ok seller-listings)
+  )
+)
+
+;; New function to get the total number of listings
+(define-public (get-total-listings)
+  (let ((total-listings (len (map-to-list listings))))
+    (ok total-listings)
   )
 )
