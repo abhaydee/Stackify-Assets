@@ -1,16 +1,39 @@
-(define-data-var owner principal tx-sender)
+(define-data-var contract-owner principal tx-sender)
+
+;; Error codes
+(define-constant ERR-NOT-AUTHORIZED (err u401))
+(define-constant ERR-PROPERTY-NOT-FOUND (err u404))
+(define-constant ERR-INVALID-PRICE (err u405))
+(define-constant ERR-LISTING-NOT-FOUND (err u406))
+(define-constant ERR-LISTING-EXPIRED (err u407))
+(define-constant ERR-LISTING-INACTIVE (err u408))
+(define-constant ERR-INSUFFICIENT-FUNDS (err u409))
+(define-constant ERR-ALREADY-LISTED (err u410))
 
 (define-map listings
   { property-id: uint }
-  { seller: principal, price: uint, status: bool, expiration: uint })
+  { 
+    seller: principal, 
+    price: uint, 
+    status: bool, 
+    expiration: uint,
+    created-at: uint 
+  })
 
 ;; Set the listing expiration period (in blocks)
-(define-constant expiration-period u1440) ;; Example: listing expires after 1440 blocks (approx. 1 day)
+(define-constant expiration-period u1440)
 
 ;; Function to list a property for sale
 (define-public (list-property (property-id uint) (price uint))
-  (let ((property (unwrap! (contract-call? .RwaProperty get-property property-id) (err u101))))
-    (asserts! (is-eq (get owner property) tx-sender) (err u102)) ;; Ensure only owner can list
+  (let (
+    (property (try! (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.RwaProperty get-property property-id)))
+    (existing-listing (map-get? listings { property-id: property-id }))
+  )
+    ;; Validate ownership and price
+    (asserts! (is-eq (get owner property) tx-sender) ERR-NOT-AUTHORIZED)
+    (asserts! (> price u0) ERR-INVALID-PRICE)
+    (asserts! (is-none existing-listing) ERR-ALREADY-LISTED)
+    
     (map-set listings 
       { property-id: property-id } 
       { seller: tx-sender, price: price, status: true, expiration: (+ (block-height) expiration-period) })
