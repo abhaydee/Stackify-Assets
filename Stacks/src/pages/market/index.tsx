@@ -4,6 +4,7 @@ import MarketCards from '@/components/MarketCards';
 
 import styles from './styles.module.scss';
 import PropertyManagement from '@/components/PropertyManagement';
+import MarketplaceOperations from '../../components/MarketplaceOperations';
 
 const Market: FC = () => {
   return (
@@ -12,6 +13,7 @@ const Market: FC = () => {
         <p className={styles.tokenText}>Marketplace</p>
         <MarketCards />
         <PropertyManagement/>
+        <MarketplaceOperations />
       </div>
     </div>
   );
