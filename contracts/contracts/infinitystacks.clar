@@ -5,6 +5,11 @@
 (define-constant err-append-supported-feed (err u102))
 (define-constant err-insufficient-funds (err u3766))
 (define-constant err-get-sBTC-price (err u104))
+(define-constant err-invalid-stake-amount (err u105))
+(define-constant err-no-stake-found (err u106))
+(define-constant err-stake-locked (err u107))
+(define-constant min-stake-period u144) ;; Minimum 1 day (144 blocks)
+(define-constant reward-rate u5) ;; 5% annual reward rate
 
 (define-fungible-token thetix-USD)
 
@@ -227,4 +232,112 @@
         (ok true)
     )
   )
+)
+
+;; New constants for staking and rewards
+(define-constant err-invalid-stake-amount (err u105))
+(define-constant err-no-stake-found (err u106))
+(define-constant err-stake-locked (err u107))
+(define-constant min-stake-period u144) ;; Minimum 1 day (144 blocks)
+(define-constant reward-rate u5) ;; 5% annual reward rate
+
+;; Staking data store
+(define-map staking-positions
+    principal
+    {
+        amount: uint,
+        start-block: uint,
+        lock-period: uint,
+        last-reward-block: uint
+    }
+)
+
+;; Total staked amount
+(define-data-var total-staked uint u0)
+
+;; Read-only function to get staking position
+(define-read-only (get-staking-position (staker principal))
+    (map-get? staking-positions staker)
+)
+
+;; Read-only function to get total staked amount
+(define-read-only (get-total-staked)
+    (ok (var-get total-staked))
+)
+
+;; Calculate rewards for a staking position
+(define-private (calculate-rewards (position {amount: uint, start-block: uint, lock-period: uint, last-reward-block: uint}))
+    (let (
+        (blocks-elapsed (- block-height (get last-reward-block position)))
+        (reward-per-block (/ (* (get amount position) reward-rate) (* u144 u365 u100)))
+    )
+        (* blocks-elapsed reward-per-block)
+    )
+)
+
+;; Stake thetix-USD tokens
+(define-public (stake-tokens (amount uint) (lock-period uint))
+    (let (
+        (current-balance (ft-get-balance thetix-USD tx-sender))
+        (existing-position (map-get? staking-positions tx-sender))
+    )
+        (asserts! (>= current-balance amount) err-insufficient-funds)
+        (asserts! (>= lock-period min-stake-period) err-invalid-stake-amount)
+        
+        (if (is-some existing-position)
+            (let ((position (unwrap-panic existing-position)))
+                (asserts! (>= block-height (+ (get start-block position) (get lock-period position))) err-stake-locked)
+                (try! (ft-transfer? thetix-USD amount tx-sender (as-contract tx-sender) none))
+                (map-set staking-positions tx-sender
+                    {
+                        amount: (+ amount (get amount position)),
+                        start-block: block-height,
+                        lock-period: lock-period,
+                        last-reward-block: block-height
+                    }
+                )
+            )
+            (begin
+                (try! (ft-transfer? thetix-USD amount tx-sender (as-contract tx-sender) none))
+                (map-set staking-positions tx-sender
+                    {
+                        amount: amount,
+                        start-block: block-height,
+                        lock-period: lock-period,
+                        last-reward-block: block-height
+                    }
+                )
+            )
+        )
+        (var-set total-staked (+ (var-get total-staked) amount))
+        (ok true)
+    )
+)
+
+;; Claim staking rewards
+(define-public (claim-rewards)
+    (let (
+        (position (unwrap! (map-get? staking-positions tx-sender) err-no-stake-found))
+        (rewards (calculate-rewards position))
+    )
+        (asserts! (> rewards u0) err-insufficient-funds)
+        (map-set staking-positions tx-sender
+            (merge position {last-reward-block: block-height})
+        )
+        (try! (ft-mint? thetix-USD rewards tx-sender))
+        (ok rewards)
+    )
+)
+
+;; Unstake tokens
+(define-public (unstake-tokens)
+    (let (
+        (position (unwrap! (map-get? staking-positions tx-sender) err-no-stake-found))
+    )
+        (asserts! (>= block-height (+ (get start-block position) (get lock-period position))) err-stake-locked)
+        (try! (ft-transfer? thetix-USD (get amount position) (as-contract tx-sender) tx-sender none))
+        (var-set total-staked (- (var-get total-staked) (get amount position)))
+        (map-delete staking-positions tx-sender)
+        (ok true)
+    )
 )
